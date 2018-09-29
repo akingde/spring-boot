@@ -58,6 +58,7 @@ import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.SocketUtils;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -265,7 +266,7 @@ public abstract class AbstractReactiveWebServerFactoryTests {
 	public void noCompressionForSmallResponse() {
 		Compression compression = new Compression();
 		compression.setEnabled(true);
-		compression.setMinResponseSize(3001);
+		compression.setMinResponseSize(DataSize.ofBytes(3001));
 		WebClient client = prepareCompressionTest(compression);
 		ResponseEntity<Void> response = client.get().exchange()
 				.flatMap((res) -> res.toEntity(Void.class)).block();
@@ -307,7 +308,7 @@ public abstract class AbstractReactiveWebServerFactoryTests {
 				.getWebServer(new CharsHandler(3000, MediaType.TEXT_PLAIN));
 		this.webServer.start();
 
-		HttpClient client = HttpClient.create().wiretap().compress().tcpConfiguration(
+		HttpClient client = HttpClient.create().wiretap().compress(true).tcpConfiguration(
 				(tcpClient) -> tcpClient.doOnConnected((connection) -> connection
 						.channel().pipeline().addBefore(NettyPipeline.HttpDecompressor,
 								"CompressionTest", new CompressionDetectionHandler())));

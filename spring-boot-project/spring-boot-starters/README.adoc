@@ -130,14 +130,23 @@ do as they were designed before this was clarified.
 | http://resteasy.jboss.org/[RESTEasy]
 | https://github.com/resteasy/resteasy-spring-boot
 
+| https://github.com/rollbar/rollbar-java/[Rollbar]
+| https://github.com/olmero/rollbar-spring-boot-starter
+
 | https://projects.spring.io/spring-batch/[Spring Batch] (Advanced usage)
 | https://github.com/codecentric/spring-boot-starter-batch-web
+
+| https://projects.spring.io/spring-shell/[Spring Shell]
+| https://github.com/fonimus/ssh-shell-spring-boot
 
 | https://github.com/savantly-net/sprout-platform[Sprout Platform]
 | https://github.com/savantly-net/sprout-platform/tree/master/spring/sprout-spring-boot-starter
 
 | SSH Daemon
 | https://github.com/anand1st/sshd-shell-spring-boot
+
+| https://github.com/stripe/stripe-java[Stripe API]
+| https://github.com/pankajtandon/stripe-starter
 
 | https://github.com/StripesFramework/stripes[Stripes]
 | https://github.com/juanpablo-santos/stripes-spring-boot

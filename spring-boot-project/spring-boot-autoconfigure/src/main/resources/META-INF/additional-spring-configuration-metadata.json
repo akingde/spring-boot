@@ -30,6 +30,12 @@
       }
     },
     {
+      "name": "server.compression.min-response-size",
+      "description": "Minimum \"Content-Length\" value that is required for compression to be performed.",
+      "type": "org.springframework.util.unit.DataSize",
+      "defaultValue": "2KB"
+    },
+    {
       "name": "server.error.include-stacktrace",
       "defaultValue": "never"
     },
@@ -154,6 +160,12 @@
       "name": "spring.data.elasticsearch.repositories.enabled",
       "type": "java.lang.Boolean",
       "description": "Whether to enable Elasticsearch repositories.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.data.jdbc.repositories.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable JDBC repositories.",
       "defaultValue": true
     },
     {
@@ -503,6 +515,11 @@
         "replacement" : "spring.resources.chain.compressed",
         "level" : "error"
       }
+    },
+    {
+      "name": "spring.quartz.scheduler-name",
+      "type": "java.lang.String",
+      "defaultValue": "quartzScheduler"
     },
     {
       "name": "spring.quartz.jdbc.initialize-schema",

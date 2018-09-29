@@ -100,7 +100,7 @@ public class KafkaAutoConfigurationTests {
 				"spring.kafka.consumer.enable-auto-commit=false",
 				"spring.kafka.consumer.fetch-max-wait=456",
 				"spring.kafka.consumer.properties.fiz.buz=fix.fox",
-				"spring.kafka.consumer.fetch-min-size=789",
+				"spring.kafka.consumer.fetch-min-size=1KB",
 				"spring.kafka.consumer.group-id=bar",
 				"spring.kafka.consumer.heartbeat-interval=234",
 				"spring.kafka.consumer.key-deserializer = org.apache.kafka.common.serialization.LongDeserializer",
@@ -143,7 +143,7 @@ public class KafkaAutoConfigurationTests {
 					assertThat(configs.get(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG))
 							.isEqualTo(456);
 					assertThat(configs.get(ConsumerConfig.FETCH_MIN_BYTES_CONFIG))
-							.isEqualTo(789);
+							.isEqualTo(1024);
 					assertThat(configs.get(ConsumerConfig.GROUP_ID_CONFIG))
 							.isEqualTo("bar");
 					assertThat(configs.get(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG))
@@ -166,10 +166,10 @@ public class KafkaAutoConfigurationTests {
 	public void producerProperties() {
 		this.contextRunner.withPropertyValues("spring.kafka.clientId=cid",
 				"spring.kafka.properties.foo.bar.baz=qux.fiz.buz",
-				"spring.kafka.producer.acks=all", "spring.kafka.producer.batch-size=20",
+				"spring.kafka.producer.acks=all", "spring.kafka.producer.batch-size=2KB",
 				"spring.kafka.producer.bootstrap-servers=bar:1234", // test
 				// override
-				"spring.kafka.producer.buffer-memory=12345",
+				"spring.kafka.producer.buffer-memory=4KB",
 				"spring.kafka.producer.compression-type=gzip",
 				"spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.LongSerializer",
 				"spring.kafka.producer.retries=2",
@@ -194,11 +194,11 @@ public class KafkaAutoConfigurationTests {
 					// producer
 					assertThat(configs.get(ProducerConfig.ACKS_CONFIG)).isEqualTo("all");
 					assertThat(configs.get(ProducerConfig.BATCH_SIZE_CONFIG))
-							.isEqualTo(20);
+							.isEqualTo(2048);
 					assertThat(configs.get(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG))
 							.isEqualTo(Collections.singletonList("bar:1234")); // override
 					assertThat(configs.get(ProducerConfig.BUFFER_MEMORY_CONFIG))
-							.isEqualTo(12345L);
+							.isEqualTo(4096L);
 					assertThat(configs.get(ProducerConfig.COMPRESSION_TYPE_CONFIG))
 							.isEqualTo("gzip");
 					assertThat(configs.get(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG))
@@ -290,7 +290,7 @@ public class KafkaAutoConfigurationTests {
 						"spring.application.name=appName",
 						"spring.kafka.properties.foo.bar.baz=qux.fiz.buz",
 						"spring.kafka.streams.auto-startup=false",
-						"spring.kafka.streams.cache-max-bytes-buffering=42",
+						"spring.kafka.streams.cache-max-size-buffering=1KB",
 						"spring.kafka.streams.client-id=override",
 						"spring.kafka.streams.properties.fiz.buz=fix.fox",
 						"spring.kafka.streams.replication-factor=2",
@@ -307,11 +307,11 @@ public class KafkaAutoConfigurationTests {
 					Properties configs = context.getBean(
 							KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME,
 							KafkaStreamsConfiguration.class).asProperties();
-					assertThat(configs.get(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG))
+					assertThat(configs.get(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG))
 							.isEqualTo("localhost:9092, localhost:9093");
 					assertThat(
 							configs.get(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG))
-									.isEqualTo("42");
+									.isEqualTo("1024");
 					assertThat(configs.get(StreamsConfig.CLIENT_ID_CONFIG))
 							.isEqualTo("override");
 					assertThat(configs.get(StreamsConfig.REPLICATION_FACTOR_CONFIG))
@@ -348,6 +348,22 @@ public class KafkaAutoConfigurationTests {
 	}
 
 	@Test
+	@Deprecated
+	public void streamPropertiesWithCustomCacheMaxBytesBuffering() {
+		this.contextRunner.withUserConfiguration(EnableKafkaStreamsConfiguration.class)
+				.withPropertyValues("spring.application.name=appName",
+						"spring.kafka.streams.cache-max-bytes-buffering=42")
+				.run((context) -> {
+					Properties configs = context.getBean(
+							KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME,
+							KafkaStreamsConfiguration.class).asProperties();
+					assertThat(
+							configs.get(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG))
+									.isEqualTo("42");
+				});
+	}
+
+	@Test
 	public void streamsApplicationIdUsesMainApplicationNameByDefault() {
 		this.contextRunner.withUserConfiguration(EnableKafkaStreamsConfiguration.class)
 				.withPropertyValues("spring.application.name=my-test-app",
@@ -357,7 +373,7 @@ public class KafkaAutoConfigurationTests {
 					Properties configs = context.getBean(
 							KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME,
 							KafkaStreamsConfiguration.class).asProperties();
-					assertThat(configs.get(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG))
+					assertThat(configs.get(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG))
 							.isEqualTo("localhost:9092, localhost:9093");
 					assertThat(configs.get(StreamsConfig.APPLICATION_ID_CONFIG))
 							.isEqualTo("my-test-app");
@@ -376,7 +392,7 @@ public class KafkaAutoConfigurationTests {
 					Properties configs = context.getBean(
 							KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME,
 							KafkaStreamsConfiguration.class).asProperties();
-					assertThat(configs.get(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG))
+					assertThat(configs.get(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG))
 							.isEqualTo("localhost:9094, localhost:9095");
 					assertThat(configs.get(StreamsConfig.APPLICATION_ID_CONFIG))
 							.isEqualTo("test-id");
@@ -628,7 +644,7 @@ public class KafkaAutoConfigurationTests {
 		@Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
 		public KafkaStreamsConfiguration kafkaStreamsConfiguration() {
 			Map<String, Object> streamsProperties = new HashMap<>();
-			streamsProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+			streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
 					"localhost:9094, localhost:9095");
 			streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "test-id");
 

@@ -122,11 +122,29 @@ public class TomcatWebServerFactoryCustomizerTests {
 	}
 
 	@Test
+	public void customMaxHttpHeaderSize() {
+		bind("server.max-http-header-size=1KB");
+		customizeAndRunServer((server) -> assertThat(((AbstractHttp11Protocol<?>) server
+				.getTomcat().getConnector().getProtocolHandler()).getMaxHttpHeaderSize())
+						.isEqualTo(DataSize.ofKilobytes(1).toBytes()));
+	}
+
+	@Test
+	@Deprecated
+	public void customMaxHttpHeaderSizeWithDeprecatedProperty() {
+		bind("server.max-http-header-size=4KB",
+				"server.tomcat.max-http-header-size=1024");
+		customizeAndRunServer((server) -> assertThat(((AbstractHttp11Protocol<?>) server
+				.getTomcat().getConnector().getProtocolHandler()).getMaxHttpHeaderSize())
+						.isEqualTo(DataSize.ofKilobytes(1).toBytes()));
+	}
+
+	@Test
 	public void customMaxSwallowSize() {
 		bind("server.tomcat.max-swallow-size=10MB");
 		customizeAndRunServer((server) -> assertThat(((AbstractHttp11Protocol<?>) server
 				.getTomcat().getConnector().getProtocolHandler()).getMaxSwallowSize())
-						.isEqualTo(DataSize.ofMegaBytes(10).toBytes()));
+						.isEqualTo(DataSize.ofMegabytes(10).toBytes()));
 	}
 
 	@Test
@@ -148,6 +166,7 @@ public class TomcatWebServerFactoryCustomizerTests {
 		assertThat(remoteIpValve.getInternalProxies()).isEqualTo("192.168.0.1");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void customStaticResourceAllowCaching() {
 		bind("server.tomcat.resource.allow-caching=false");
@@ -208,7 +227,8 @@ public class TomcatWebServerFactoryCustomizerTests {
 				+ "127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|" // 127/8
 				+ "172\\.1[6-9]{1}\\.\\d{1,3}\\.\\d{1,3}|" // 172.16/12
 				+ "172\\.2[0-9]{1}\\.\\d{1,3}\\.\\d{1,3}|"
-				+ "172\\.3[0-1]{1}\\.\\d{1,3}\\.\\d{1,3}";
+				+ "172\\.3[0-1]{1}\\.\\d{1,3}\\.\\d{1,3}|" //
+				+ "0:0:0:0:0:0:0:1|::1";
 		assertThat(remoteIpValve.getInternalProxies()).isEqualTo(expectedInternalProxies);
 	}
 
@@ -216,7 +236,7 @@ public class TomcatWebServerFactoryCustomizerTests {
 	public void defaultBackgroundProcessorDelay() {
 		TomcatWebServer server = customizeAndGetServer();
 		assertThat(server.getTomcat().getEngine().getBackgroundProcessorDelay())
-				.isEqualTo(30);
+				.isEqualTo(10);
 	}
 
 	@Test
